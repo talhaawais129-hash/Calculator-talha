@@ -5,26 +5,51 @@ jobs:
   export-android:
     name: Android Export
     runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.3
     steps:
-      - name: Checkout
+      - name: Checkout Project
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Setup Templates
+      - name: Setup Java (OpenJDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android Build Tools & Platform
         run: |
-          mkdir -p ~/.local/share/godot/export_templates/
-          mv /root/.local/share/godot/export_templates/* ~/.local/share/godot/export_templates/
+          sdkmanager "platform-tools" "build-tools;33.0.2" "platforms;android-33"
+
+      - name: Setup Godot Engine & Templates
+        run: |
+          wget -q https://github.com
+          unzip Godot_v4.3-stable_linux.x86_64.zip
+          mv Godot_v4.3-stable_linux.x86_64 godot
+          chmod +x godot
+          
+          wget -q https://github.com
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable/
+          unzip Godot_v4.3-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/
+          mv ~/.local/share/godot/export_templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
+
+      - name: Fix Godot SDK Paths for Cloud Build
+        run: |
+          mkdir -p ~/.config/godot/
+          echo 'export/android/android_sdk_path = "'$ANDROID_HOME'"' >> ~/.config/godot/editor_settings-4.tres
+          echo 'export/android/jdk_path = "'$JAVA_HOME'"' >> ~/.config/godot/editor_settings-4.tres
+          sed -i 's|keystore/debug=".*"|keystore/debug="res://debug.keystore"|g' export_presets.cfg
 
       - name: Create Export Directory
         run: mkdir -v -p build/android
 
       - name: Android Export
-        run: godot --headless --export-release "Android" build/android/calculator.apk
+        run: ./godot --headless --export-release "Android" build/android/calculator.apk
 
-      - name: Upload Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
