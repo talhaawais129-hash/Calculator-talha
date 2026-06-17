@@ -1,0 +1,31 @@
+name: "Godot APK Build"
+on: [push, pull_request]
+
+jobs:
+  export-android:
+    name: Android Export
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup Templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/
+          mv /root/.local/share/godot/export_templates/* ~/.local/share/godot/export_templates/
+
+      - name: Create Export Directory
+        run: mkdir -v -p build/android
+
+      - name: Android Export
+        run: godot --headless --export-release "Android" build/android/calculator.apk
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/android/calculator.apk
