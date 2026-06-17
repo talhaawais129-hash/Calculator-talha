@@ -26,12 +26,13 @@ jobs:
 
       - name: Setup Godot Engine & Templates
         run: |
-          wget -q https://github.com
+          # Sahi download links (TuxFamily official mirror)
+          wget -q https://tuxfamily.org
           unzip Godot_v4.3-stable_linux.x86_64.zip
           mv Godot_v4.3-stable_linux.x86_64 godot
           chmod +x godot
           
-          wget -q https://github.com
+          wget -q https://tuxfamily.org
           mkdir -p ~/.local/share/godot/export_templates/4.3.stable/
           unzip Godot_v4.3-stable_export_templates.tpz -d ~/.local/share/godot/export_templates/
           mv ~/.local/share/godot/export_templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
